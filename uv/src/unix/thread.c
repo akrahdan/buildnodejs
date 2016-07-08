@@ -1,10 +1,9 @@
 #include "uv.h"
-#include "internal.h"
-
+#include "uv-common.h"
 #include <pthread.h>
 #include <assert.h>
 #include <errno.h>
-
+#include <stdlib.h>
 #include <sys/time.h>
 #include <sys/resource.h>  /* getrlimit() */
 #include <unistd.h>  /* getpagesize() */
@@ -36,10 +35,22 @@ static void* uv__thread_start(void *arg)
 
 int uv_thread_create(uv_thread_t *tid, void (*entry)(void *arg), void *arg) {
   
+  struct thread_ctx* ctx;
   int err;
+
+  ctx = uv__malloc(sizeof(*ctx));
+  if (ctx == NULL)
+    return UV_ENOMEM;
+
+  ctx->entry = entry;
+  ctx->arg = arg;
   
-  err = pthread_create(tid, NULL, entry, arg);
-  return err;
+  err = pthread_create(tid, NULL, uv__thread_start, ctx);
+  
+   if (err)
+    uv__free(ctx);
+    
+    return err;
 }
 
 

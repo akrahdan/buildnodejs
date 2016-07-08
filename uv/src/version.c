@@ -19,44 +19,27 @@
  * IN THE SOFTWARE.
  */
 
-/*
- * This file is private to libuv. It provides common functionality to both
- * Windows and Unix backends.
- */
-
-#ifndef UV_COMMON_H_
-#define UV_COMMON_H_
-
-#include <assert.h>
-#include <stdarg.h>
-#include <stddef.h>
-
-
-#include <stdint.h>
-
-
 #include "uv.h"
-#include "tree.h"
-#include "queue.h"
 
-#if !defined(snprintf) && defined(_MSC_VER) && _MSC_VER < 1900
-extern int snprintf(char*, size_t, const char*, ...);
+#define UV_STRINGIFY(v) UV_STRINGIFY_HELPER(v)
+#define UV_STRINGIFY_HELPER(v) #v
+
+#define UV_VERSION_STRING_BASE  UV_STRINGIFY(UV_VERSION_MAJOR) "." \
+                                UV_STRINGIFY(UV_VERSION_MINOR) "." \
+                                UV_STRINGIFY(UV_VERSION_PATCH)
+
+#if UV_VERSION_IS_RELEASE
+# define UV_VERSION_STRING  UV_VERSION_STRING_BASE
+#else
+# define UV_VERSION_STRING  UV_VERSION_STRING_BASE "-" UV_VERSION_SUFFIX
 #endif
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
-#define container_of(ptr, type, member) \
-  ((type *) ((char *) (ptr) - offsetof(type, member)))
+unsigned int uv_version(void) {
+  return UV_VERSION_HEX;
+}
 
-#define STATIC_ASSERT(expr)                                                   \
-  void uv__static_assert(int static_assert_failed[1 - 2 * !(expr)])
 
-/* Allocator prototypes */
-void *uv__calloc(size_t count, size_t size);
-char *uv__strdup(const char* s);
-char *uv__strndup(const char* s, size_t n);
-void* uv__malloc(size_t size);
-void uv__free(void* ptr);
-void* uv__realloc(void* ptr, size_t size);
-
-#endif /* UV_COMMON_H_ */
+const char* uv_version_string(void) {
+  return UV_VERSION_STRING;
+}
